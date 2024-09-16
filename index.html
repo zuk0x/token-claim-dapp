@@ -60,14 +60,8 @@
         document.getElementById('connectWallet').addEventListener('click', async () => {
             try {
                 if (window.ethereum) {
-                    console.log('MetaMask detected.');
                     web3 = new Web3(window.ethereum);
-                    console.log('Web3 initialized.');
-
-                    // Request accounts from MetaMask
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    console.log('Accounts:', accounts);
-
                     userAccount = accounts[0];
                     contract = new web3.eth.Contract(abi, contractAddress);
                     document.getElementById('status').innerText = `Connected: ${userAccount}`;
@@ -83,15 +77,13 @@
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                const claimAmount = await contract.methods.claimAmount().call();
-                const hasClaimed = await contract.methods.hasClaimed(userAccount).call();
-
-                if (hasClaimed) {
-                    document.getElementById('status').innerText = 'You have already claimed your tokens.';
-                    return;
+                if (!web3 || !contract || !userAccount) {
+                    throw new Error('Web3 or contract or userAccount not initialized.');
                 }
 
+                // Call the claim method on the contract
                 await contract.methods.claim().send({ from: userAccount });
+                
                 document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
                 console.error('Error claiming tokens:', error);
