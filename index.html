@@ -3,58 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claim OWIF Tokens</title>
+    <title>Token Claim DApp</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding-top: 50px;
+            background-color: #f5f5f5;
+            color: #333;
         }
-
-        button {
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            display: inline-block;
             padding: 10px 20px;
             font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+            text-decoration: none;
         }
-
-        pre.octopus {
-            font-family: monospace;
-            line-height: 1.2;
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
             font-size: 14px;
-            text-align: center;
+        }
+        #kraken-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Claim 100 OWIF Tokens!</h1>
-
-    <!-- Octopus Graphic -->
-    <pre class="octopus">
-      ######
-    #      #
-   #  O  O  #
-   #   ##   #
-    #      #
-      ######
-    ###  ###
-   #   ##   #
-  #   ####   #
-  #  ######  #
-</pre>
-
-    <p id="status">Connect your wallet to claim tokens.</p>
-    <button id="connectWallet">Connect Wallet</button>
-    <button id="claimToken" disabled>Claim 100 OWIF</button>
+    <div class="container">
+        <img id="kraken-logo" src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Logo_Kraken.png" alt="Kraken Logo">
+        <h1>Token Claim DApp</h1>
+        <button id="connectWallet" class="button">Connect Wallet</button>
+        <br><br>
+        <button id="claimButton" class="button" style="display: none;">Claim 100 OWIF</button>
+        <p id="status"></p>
+        <p id="error" class="error"></p>
+    </div>
 
     <script>
         let web3;
         let contract;
-        let userAccount;
-
-        // Contract details
-        const contractAddress = "0x1B97bC89cFAC3DD75a1b157c70C9bEdD895DAF9e";
-        const abi = [
+        const contractAddress = '0x1B97bC89cFAC3DD75a1b157c70C9bEdD895DAF9e'; // Updated contract address
+        const contractABI = [
             {
                 "inputs": [],
                 "name": "claim",
@@ -64,8 +71,16 @@
             },
             {
                 "inputs": [
-                    { "internalType": "address", "name": "_tokenAddress", "type": "address" },
-                    { "internalType": "uint256", "name": "_claimAmount", "type": "uint256" }
+                    {
+                        "internalType": "address",
+                        "name": "_tokenAddress",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_claimAmount",
+                        "type": "uint256"
+                    }
                 ],
                 "stateMutability": "nonpayable",
                 "type": "constructor"
@@ -73,14 +88,30 @@
             {
                 "anonymous": false,
                 "inputs": [
-                    { "indexed": true, "internalType": "address", "name": "claimant", "type": "address" },
-                    { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "claimant",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
                 ],
                 "name": "TokenClaimed",
                 "type": "event"
             },
             {
-                "inputs": [ { "internalType": "uint256", "name": "_amount", "type": "uint256" } ],
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_amount",
+                        "type": "uint256"
+                    }
+                ],
                 "name": "withdrawTokens",
                 "outputs": [],
                 "stateMutability": "nonpayable",
@@ -89,28 +120,58 @@
             {
                 "inputs": [],
                 "name": "claimAmount",
-                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
-                "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
                 "name": "hasClaimed",
-                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "inputs": [],
                 "name": "owner",
-                "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "inputs": [],
                 "name": "token",
-                "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
+                "outputs": [
+                    {
+                        "internalType": "contract IERC20",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
                 "stateMutability": "view",
                 "type": "function"
             }
@@ -119,43 +180,34 @@
         document.getElementById('connectWallet').addEventListener('click', async () => {
             if (window.ethereum) {
                 try {
-                    // Request account access
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    // Initialize Web3
                     web3 = new Web3(window.ethereum);
-                    
-                    // Get user account
-                    userAccount = (await web3.eth.getAccounts())[0];
-                    
-                    // Initialize contract
-                    contract = new web3.eth.Contract(abi, contractAddress);
-
-                    // Update UI
-                    document.getElementById('status').innerText = `Connected: ${userAccount}`;
-                    document.getElementById('claimToken').disabled = false;
+                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                    document.getElementById('claimButton').style.display = 'inline-block';
+                    document.getElementById('status').innerText = 'Wallet connected!';
                 } catch (error) {
-                    console.error('Error connecting to wallet:', error);
-                    document.getElementById('status').innerText = 'Connection failed. Check console for details.';
+                    console.error('Error connecting wallet:', error);
+                    document.getElementById('error').innerText = 'Error connecting wallet. See console for details.';
                 }
             } else {
-                alert('MetaMask is not installed. Please install MetaMask and try again.');
+                document.getElementById('error').innerText = 'MetaMask not detected. Please install MetaMask.';
             }
         });
 
-        document.getElementById('claimToken').addEventListener('click', async () => {
-            if (!web3 || !contract || !userAccount) {
-                document.getElementById('status').innerText = 'Please connect your wallet first.';
-                return;
-            }
-
-            try {
-                // Execute claim function
-                await contract.methods.claim().send({ from: userAccount });
-                document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
-            } catch (error) {
-                console.error('Error claiming tokens:', error);
-                document.getElementById('status').innerText = 'Error claiming tokens. Check console for details.';
+        document.getElementById('claimButton').addEventListener('click', async () => {
+            if (contract && web3) {
+                const accounts = await web3.eth.getAccounts();
+                const account = accounts[0];
+                try {
+                    const tx = await contract.methods.claim().send({ from: account });
+                    document.getElementById('status').innerText = 'Tokens claimed successfully!';
+                    document.getElementById('error').innerText = '';
+                } catch (error) {
+                    console.error('Error claiming tokens:', error);
+                    document.getElementById('error').innerText = 'Error claiming tokens. See console for details.';
+                }
+            } else {
+                document.getElementById('error').innerText = 'Wallet not connected. Please connect your wallet first.';
             }
         });
     </script>
