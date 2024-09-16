@@ -52,29 +52,74 @@
         let contract;
         let userAccount;
 
-        const contractAddress = "0xb8C5F3c1D85C45d60DAb34a4f94e2B173C53C407";  // Your OWIF token contract address
+        // Updated contract address
+        const contractAddress = "0xFAD2Bf89e1f9D30b25EbFba6f7D440aED1230bcE";
+        
+        // Updated ABI based on provided data
         const abi = [
             {
-                "inputs": [
-                    { "internalType": "address", "name": "_to", "type": "address" },
-                    { "internalType": "uint256", "name": "_value", "type": "uint256" }
-                ],
-                "name": "transfer",
-                "outputs": [{ "internalType": "bool", "name": "success", "type": "bool" }],
+                "inputs": [],
+                "name": "claim",
+                "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
-                "inputs": [{ "internalType": "address", "name": "_owner", "type": "address" }],
-                "name": "balanceOf",
-                "outputs": [{ "internalType": "uint256", "name": "balance", "type": "uint256" }],
+                "inputs": [
+                    { "internalType": "address", "name": "_tokenAddress", "type": "address" },
+                    { "internalType": "uint256", "name": "_claimAmount", "type": "uint256" }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": true, "internalType": "address", "name": "claimant", "type": "address" },
+                    { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "TokenClaimed",
+                "type": "event"
+            },
+            {
+                "inputs": [ { "internalType": "uint256", "name": "_amount", "type": "uint256" } ],
+                "name": "withdrawTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "claimAmount",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                "name": "hasClaimed",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "token",
+                "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
                 "stateMutability": "view",
                 "type": "function"
             }
         ];
 
-        // Corrected claimAmount
-        const claimAmount = web3.utils.toBN('100').toString(); // 100 OWIF tokens, assuming no decimals
+        // The claim amount in wei, assuming claim amount is 100 tokens with 18 decimals
+        const claimAmount = web3.utils.toWei('100', 'ether');
 
         document.getElementById('connectWallet').addEventListener('click', async () => {
             if (window.ethereum) {
@@ -96,19 +141,10 @@
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                const owner = "0xd3E50cC411B741711243A7dD25204fb31aC38D0c";  // Replace with your wallet address that holds the OWIF tokens
-                const ownerBalance = await contract.methods.balanceOf(owner).call();
-                
-                if (parseInt(ownerBalance) < parseInt(claimAmount)) {
-                    document.getElementById('status').innerText = 'Not enough tokens available for claiming.';
-                    return;
-                }
-
-                // Ensure correct method for claiming tokens
-                await contract.methods.transfer(userAccount, claimAmount).send({ from: owner });
+                await contract.methods.claim().send({ from: userAccount });
                 document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
-                console.error('Error claiming tokens:', error);  // Log detailed error to the console
+                console.error('Error claiming tokens:', error);
                 document.getElementById('status').innerText = 'Error claiming tokens. Check console for details.';
             }
         });
