@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Claim DApp</title>
+    <title>Claim OWIF Tokens</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <style>
         body {
@@ -17,21 +17,64 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        pre.octopus {
+            font-family: monospace;
+            line-height: 1.2;
+            font-size: 14px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1>Claim Fun Tokens!</h1>
+    <h1>Claim 100 OWIF Tokens!</h1>
+
+    <!-- Octopus Graphic -->
+    <pre class="octopus">
+      ######
+    #      #
+   #  O  O  #
+   #   ##   #
+    #      #
+      ######
+    ###  ###
+   #   ##   #
+  #   ####   #
+  #  ######  #
+</pre>
+
     <p id="status">Connect your wallet to claim tokens.</p>
     <button id="connectWallet">Connect Wallet</button>
-    <button id="claimToken" disabled>Claim Token</button>
+    <button id="claimToken" disabled>Claim 100 OWIF</button>
 
     <script>
         let web3;
         let contract;
         let userAccount;
 
-        const contractAddress = "<YOUR_CONTRACT_ADDRESS>";  // Replace with your contract address
-        const abi = [/* ABI from Remix after contract deployment */];
+        const contractAddress = "0xb8C5F3c1D85C45d60DAb34a4f94e2B173C53C407";  // Your OWIF token contract address
+        const abi = [
+            // Minimal ERC20 ABI for balance and transfer functions
+            {
+                "constant": true,
+                "inputs": [{ "name": "_owner", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "name": "balance", "type": "uint256" }],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    { "name": "_to", "type": "address" },
+                    { "name": "_value", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "name": "success", "type": "bool" }],
+                "type": "function"
+            }
+        ];
+
+        const claimAmount = web3.utils.toWei('100', 'ether');  // 100 OWIF tokens, assuming 18 decimals
 
         document.getElementById('connectWallet').addEventListener('click', async () => {
             if (window.ethereum) {
@@ -53,10 +96,18 @@
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                await contract.methods.claim().send({ from: userAccount });
-                document.getElementById('status').innerText = 'Token claimed successfully!';
+                const owner = "YOUR_WALLET_ADDRESS";  // Replace with your wallet address that holds the OWIF tokens
+                const ownerBalance = await contract.methods.balanceOf(owner).call();
+                
+                if (parseInt(ownerBalance) < claimAmount) {
+                    document.getElementById('status').innerText = 'Not enough tokens available for claiming.';
+                    return;
+                }
+
+                await contract.methods.transfer(userAccount, claimAmount).send({ from: owner });
+                document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
-                document.getElementById('status').innerText = 'Error claiming token. You might have already claimed.';
+                document.getElementById('status').innerText = 'Error claiming tokens. You might have already claimed.';
             }
         });
     </script>
