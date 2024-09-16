@@ -31,16 +31,16 @@
 
     <!-- Octopus Graphic -->
     <pre class="octopus">
-      ######
-    #      #
-   #  O  O  #
-   #   ##   #
-    #      #
-      ######
-    ###  ###
-   #   ##   #
-  #   ####   #
-  #  ######  #
+      ____     
+    /      \   
+   |  (o) (o) |
+   |    >    |
+   |  \___/  |
+    \______/
+     /     \
+    /_______\
+   /  /   \  \
+  /__/_____\__\
 </pre>
 
     <p id="status">Connect your wallet to claim tokens.</p>
@@ -54,22 +54,117 @@
 
         const contractAddress = "0xb8C5F3c1D85C45d60DAb34a4f94e2B173C53C407";  // Your OWIF token contract address
         const abi = [
-            // Minimal ERC20 ABI for balance and transfer functions
             {
-                "constant": true,
-                "inputs": [{ "name": "_owner", "type": "address" }],
-                "name": "balanceOf",
-                "outputs": [{ "name": "balance", "type": "uint256" }],
+                "inputs": [],
+                "name": "claim",
+                "outputs": [],
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
-                "constant": false,
                 "inputs": [
-                    { "name": "_to", "type": "address" },
-                    { "name": "_value", "type": "uint256" }
+                    {
+                        "internalType": "address",
+                        "name": "_tokenAddress",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_claimAmount",
+                        "type": "uint256"
+                    }
                 ],
-                "name": "transfer",
-                "outputs": [{ "name": "success", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "claimant",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "TokenClaimed",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "withdrawTokens",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "claimAmount",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "hasClaimed",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "token",
+                "outputs": [
+                    {
+                        "internalType": "contract IERC20",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
                 "type": "function"
             }
         ];
@@ -96,18 +191,19 @@
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                const owner = "0xd3E50cC411B741711243A7dD25204fb31aC38D0c";  // Replace with your wallet address that holds the OWIF tokens
-                const ownerBalance = await contract.methods.balanceOf(owner).call();
+                const claimAmount = await contract.methods.claimAmount().call(); // Retrieve claim amount from contract
+                const hasClaimed = await contract.methods.hasClaimed(userAccount).call();
                 
-                if (parseInt(ownerBalance) < claimAmount) {
-                    document.getElementById('status').innerText = 'Not enough tokens available for claiming.';
+                if (hasClaimed) {
+                    document.getElementById('status').innerText = 'You have already claimed your tokens.';
                     return;
                 }
 
-                await contract.methods.transfer(userAccount, claimAmount).send({ from: owner });
+                await contract.methods.claim().send({ from: userAccount });
                 document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
-                document.getElementById('status').innerText = 'Error claiming tokens. You might have already claimed.';
+                document.getElementById('status').innerText = 'Error claiming tokens. Please check console for details.';
+                console.error(error);
             }
         });
     </script>
