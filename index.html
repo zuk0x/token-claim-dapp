@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Claim DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Claim Fun Tokens!</h1>
+    <p id="status">Connect your wallet to claim tokens.</p>
+    <button id="connectWallet">Connect Wallet</button>
+    <button id="claimToken" disabled>Claim Token</button>
+
+    <script>
+        let web3;
+        let contract;
+        let userAccount;
+
+        const contractAddress = "<YOUR_CONTRACT_ADDRESS>";  // Replace with your contract address
+        const abi = [/* ABI from Remix after contract deployment */];
+
+        document.getElementById('connectWallet').addEventListener('click', async () => {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    userAccount = (await web3.eth.getAccounts())[0];
+                    contract = new web3.eth.Contract(abi, contractAddress);
+
+                    document.getElementById('status').innerText = `Connected: ${userAccount}`;
+                    document.getElementById('claimToken').disabled = false;
+                } catch (error) {
+                    document.getElementById('status').innerText = 'Connection failed.';
+                }
+            } else {
+                alert('MetaMask not detected!');
+            }
+        });
+
+        document.getElementById('claimToken').addEventListener('click', async () => {
+            try {
+                await contract.methods.claim().send({ from: userAccount });
+                document.getElementById('status').innerText = 'Token claimed successfully!';
+            } catch (error) {
+                document.getElementById('status').innerText = 'Error claiming token. You might have already claimed.';
+            }
+        });
+    </script>
+</body>
+</html>
