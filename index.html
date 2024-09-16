@@ -96,7 +96,7 @@
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                const owner = "YOUR_WALLET_ADDRESS";  // Replace with your wallet address that holds the OWIF tokens
+                const owner = "0xd3E50cC411B741711243A7dD25204fb31aC38D0c";  // Replace with your wallet address that holds the OWIF tokens
                 const ownerBalance = await contract.methods.balanceOf(owner).call();
                 
                 if (parseInt(ownerBalance) < claimAmount) {
