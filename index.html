@@ -54,146 +54,38 @@
 
         const contractAddress = "0xb8C5F3c1D85C45d60DAb34a4f94e2B173C53C407";  // Your OWIF token contract address
         const abi = [
-            {
-                "inputs": [],
-                "name": "claim",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "_tokenAddress",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "_claimAmount",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "claimant",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "TokenClaimed",
-                "type": "event"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "_amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "withdrawTokens",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "claimAmount",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "name": "hasClaimed",
-                "outputs": [
-                    {
-                        "internalType": "bool",
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "owner",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "token",
-                "outputs": [
-                    {
-                        "internalType": "contract IERC20",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            }
+            // ABI array here
         ];
 
-        const claimAmount = web3.utils.toWei('100', 'ether');  // 100 OWIF tokens, assuming 18 decimals
-
         document.getElementById('connectWallet').addEventListener('click', async () => {
-            if (window.ethereum) {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+            try {
+                if (window.ethereum) {
+                    console.log('MetaMask detected.');
                     web3 = new Web3(window.ethereum);
-                    userAccount = (await web3.eth.getAccounts())[0];
-                    contract = new web3.eth.Contract(abi, contractAddress);
+                    console.log('Web3 initialized.');
 
+                    // Request accounts from MetaMask
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    console.log('Accounts:', accounts);
+
+                    userAccount = accounts[0];
+                    contract = new web3.eth.Contract(abi, contractAddress);
                     document.getElementById('status').innerText = `Connected: ${userAccount}`;
                     document.getElementById('claimToken').disabled = false;
-                } catch (error) {
-                    document.getElementById('status').innerText = 'Connection failed.';
+                } else {
+                    alert('MetaMask not detected! Please install MetaMask.');
                 }
-            } else {
-                alert('MetaMask not detected!');
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                document.getElementById('status').innerText = 'Connection failed. See console for details.';
             }
         });
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                const claimAmount = await contract.methods.claimAmount().call(); // Retrieve claim amount from contract
+                const claimAmount = await contract.methods.claimAmount().call();
                 const hasClaimed = await contract.methods.hasClaimed(userAccount).call();
-                
+
                 if (hasClaimed) {
                     document.getElementById('status').innerText = 'You have already claimed your tokens.';
                     return;
@@ -202,8 +94,8 @@
                 await contract.methods.claim().send({ from: userAccount });
                 document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
-                document.getElementById('status').innerText = 'Error claiming tokens. Please check console for details.';
-                console.error(error);
+                console.error('Error claiming tokens:', error);
+                document.getElementById('status').innerText = 'Error claiming tokens. See console for details.';
             }
         });
     </script>
