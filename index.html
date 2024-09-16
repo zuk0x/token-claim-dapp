@@ -52,10 +52,8 @@
         let contract;
         let userAccount;
 
-        // Updated contract address
+        // Contract details
         const contractAddress = "0xFAD2Bf89e1f9D30b25EbFba6f7D440aED1230bcE";
-        
-        // Updated ABI based on provided data
         const abi = [
             {
                 "inputs": [],
@@ -118,29 +116,41 @@
             }
         ];
 
-        // The claim amount in wei, assuming claim amount is 100 tokens with 18 decimals
-        const claimAmount = web3.utils.toWei('100', 'ether');
-
         document.getElementById('connectWallet').addEventListener('click', async () => {
             if (window.ethereum) {
                 try {
+                    // Request account access
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Initialize Web3
                     web3 = new Web3(window.ethereum);
+                    
+                    // Get user account
                     userAccount = (await web3.eth.getAccounts())[0];
+                    
+                    // Initialize contract
                     contract = new web3.eth.Contract(abi, contractAddress);
 
+                    // Update UI
                     document.getElementById('status').innerText = `Connected: ${userAccount}`;
                     document.getElementById('claimToken').disabled = false;
                 } catch (error) {
-                    document.getElementById('status').innerText = 'Connection failed.';
+                    console.error('Error connecting to wallet:', error);
+                    document.getElementById('status').innerText = 'Connection failed. Check console for details.';
                 }
             } else {
-                alert('MetaMask not detected!');
+                alert('MetaMask is not installed. Please install MetaMask and try again.');
             }
         });
 
         document.getElementById('claimToken').addEventListener('click', async () => {
+            if (!web3 || !contract || !userAccount) {
+                document.getElementById('status').innerText = 'Please connect your wallet first.';
+                return;
+            }
+
             try {
+                // Execute claim function
                 await contract.methods.claim().send({ from: userAccount });
                 document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
