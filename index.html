@@ -31,16 +31,16 @@
 
     <!-- Octopus Graphic -->
     <pre class="octopus">
-      ____     
-    /      \   
-   |  (o) (o) |
-   |    >    |
-   |  \___/  |
-    \______/
-     /     \
-    /_______\
-   /  /   \  \
-  /__/_____\__\
+      ######
+    #      #
+   #  O  O  #
+   #   ##   #
+    #      #
+      ######
+    ###  ###
+   #   ##   #
+  #   ####   #
+  #  ######  #
 </pre>
 
     <p id="status">Connect your wallet to claim tokens.</p>
@@ -54,40 +54,62 @@
 
         const contractAddress = "0xb8C5F3c1D85C45d60DAb34a4f94e2B173C53C407";  // Your OWIF token contract address
         const abi = [
-            // ABI array here
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "_to", "type": "address" },
+                    { "internalType": "uint256", "name": "_value", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "internalType": "bool", "name": "success", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{ "internalType": "address", "name": "_owner", "type": "address" }],
+                "name": "balanceOf",
+                "outputs": [{ "internalType": "uint256", "name": "balance", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            }
         ];
 
+        // Corrected claimAmount
+        const claimAmount = web3.utils.toBN('100').toString(); // 100 OWIF tokens, assuming no decimals
+
         document.getElementById('connectWallet').addEventListener('click', async () => {
-            try {
-                if (window.ethereum) {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
                     web3 = new Web3(window.ethereum);
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userAccount = accounts[0];
+                    userAccount = (await web3.eth.getAccounts())[0];
                     contract = new web3.eth.Contract(abi, contractAddress);
+
                     document.getElementById('status').innerText = `Connected: ${userAccount}`;
                     document.getElementById('claimToken').disabled = false;
-                } else {
-                    alert('MetaMask not detected! Please install MetaMask.');
+                } catch (error) {
+                    document.getElementById('status').innerText = 'Connection failed.';
                 }
-            } catch (error) {
-                console.error('Error connecting wallet:', error);
-                document.getElementById('status').innerText = 'Connection failed. See console for details.';
+            } else {
+                alert('MetaMask not detected!');
             }
         });
 
         document.getElementById('claimToken').addEventListener('click', async () => {
             try {
-                if (!web3 || !contract || !userAccount) {
-                    throw new Error('Web3 or contract or userAccount not initialized.');
+                const owner = "0xd3E50cC411B741711243A7dD25204fb31aC38D0c";  // Replace with your wallet address that holds the OWIF tokens
+                const ownerBalance = await contract.methods.balanceOf(owner).call();
+                
+                if (parseInt(ownerBalance) < parseInt(claimAmount)) {
+                    document.getElementById('status').innerText = 'Not enough tokens available for claiming.';
+                    return;
                 }
 
-                // Call the claim method on the contract
-                await contract.methods.claim().send({ from: userAccount });
-                
+                // Ensure correct method for claiming tokens
+                await contract.methods.transfer(userAccount, claimAmount).send({ from: owner });
                 document.getElementById('status').innerText = '100 OWIF tokens claimed successfully!';
             } catch (error) {
-                console.error('Error claiming tokens:', error);
-                document.getElementById('status').innerText = 'Error claiming tokens. See console for details.';
+                console.error('Error claiming tokens:', error);  // Log detailed error to the console
+                document.getElementById('status').innerText = 'Error claiming tokens. Check console for details.';
             }
         });
     </script>
